@@ -16,6 +16,7 @@ import {
     StatusBar,
 } from 'react-native';
 import { Button } from 'react-native-elements';
+import AnswerChoices from './components/answerChoices'
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 import {
@@ -33,28 +34,49 @@ export default class App extends Component {
         super(props);
         Sound.setCategory('Playback');
         this.state={
-
+            level: 0,
+            intervals: ['Minor 2nd','Major 2nd','Minor 3rd','Major 3rd','Perfect 4th','Tritone','Perfect 5th','Minor 6th','Major 6th','Minor 7','Major','Octave','Minor 9th','Major 9th'],
+            choices: [
+                ['Major 3rd', 'Perfect 5th', 'Octave'],
+                ['Minor 2nd', 'Major 3rd', 'P5', 'Octave'],
+                ['Minor 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 5th', 'Octave'],
+                ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 5th', 'Octave'],
+                ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Perfect 5th', 'Octave'],
+            ]
         }
     }
 
-    playSounds(){
-        alert('playing sound');
-        let whoosh = new Sound('./pianoNotes/Piano.mf.C4.aiff', Sound.MAIN_BUNDLE, (error) => {
+    playNextSound(){
+        let whoosh = new Sound('pianoNotes/Piano.mf.C5.aiff', Sound.MAIN_BUNDLE, (error) => {
             if (error) {
                 console.log('failed to load the sound', error);
                 return;
             }
             // loaded successfully
             console.log('duration in seconds: ' + whoosh.getDuration() + 'number of channels: ' + whoosh.getNumberOfChannels());
-
             // Play the sound with an onEnd callback
-            whoosh.play((success) => {
-                if (success) {
-                    console.log('successfully finished playing');
-                } else {
-                    console.log('playback failed due to audio decoding errors');
-                }
-            });
+            whoosh.play();
+            setTimeout(() => {
+                whoosh.release();
+            }, 1500)
+        });
+    }
+
+    playSounds(){
+        let whoosh = new Sound('pianoNotes/Piano.mf.C4.aiff', Sound.MAIN_BUNDLE, (error) => {
+            if (error) {
+                console.log('failed to load the sound', error);
+                return;
+            }
+            // loaded successfully
+            console.log('duration in seconds: ' + whoosh.getDuration() + 'number of channels: ' + whoosh.getNumberOfChannels());
+            // Play the sound with an onEnd callback
+            whoosh.play();
+            setTimeout(() => {
+                whoosh.stop(()=>{
+                    this.playNextSound();
+                });
+            }, 1500)
         });
     }
     render() {
@@ -74,6 +96,10 @@ export default class App extends Component {
                                 onPress={() => {
                                     this.playSounds();
                                 }}
+                            />
+                            <AnswerChoices
+                                choices={this.state.choices[this.state.level]}
+
                             />
                         </View>
                     </View>
