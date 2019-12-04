@@ -45,7 +45,7 @@ export default class AnswerChoices extends Component {
                 <FlatList
                     data={this.props.choices}
                     renderItem={({item}) => <Button
-                        onPress={()=>console.log(item)}
+                        onPress={()=>this.props.handleAnswer(item)}
                         buttonStyle={{marginTop: 10}}
                         title={item} />}
                 />
