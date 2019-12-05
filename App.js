@@ -16,7 +16,8 @@ import {
     Dimensions
 } from 'react-native';
 import { Button } from 'react-native-elements';
-import AnswerChoices from './components/answerChoices'
+import AnswerChoices from './components/answerChoices';
+
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { getRandomInt } from './utilities'
 
@@ -37,26 +38,42 @@ export default class App extends Component {
         Sound.setCategory('Playback');
         this.state={
             level: 0,
-            intervals: ['Minor 2nd','Major 2nd','Minor 3rd','Major 3rd','Perfect 4th','Tritone','Perfect 5th','Minor 6th','Major 6th','Minor 7','Major','Octave','Minor 9th','Major 9th'],
+            intervals: ['Minor 2nd','Major 2nd','Minor 3rd','Major 3rd','Perfect 4th','Tritone','Perfect 5th','Minor 6th','Major 6th','Minor 7th','Major 7th','Octave','Minor 9th','Major 9th'],
             choices: [
                 ['Major 3rd', 'Perfect 5th', 'Octave'],
                 ['Minor 2nd', 'Major 3rd', 'P5', 'Octave'],
                 ['Minor 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 5th', 'Octave'],
                 ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 5th', 'Octave'],
                 ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Perfect 5th', 'Octave'],
+                ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Tritone', 'Perfect 5th', 'Octave'],
+                ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Tritone', 'Perfect 5th', 'Minor 6th', 'Octave'],
+                ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 7th', 'Octave'],
+                ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 6th', 'Major 7th', 'Octave'],
+                ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 6th', 'Minor 7th', 'Major 7th', 'Octave'],
+                ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 6th', 'Minor 7th', 'Major 7th', 'Octave','Minor 9th'],
+                ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 6th', 'Minor 7th', 'Major 7th', 'Octave','Minor 9th', 'Major 9th'],
             ],
-            pitches: ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B',],
+            pitches: ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'],
             tally: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
             grade:0,
+            attempts:[0,0,0]
         }
     }
 
     componentDidUpdate(prevProps, prevState, snapshot){
         if (this.state.grade >= .9){
+            let length = props.choices.length;
+            let attempts = [];
+
+            for (let i = 0; i < length; i++){
+                attempts.push(0);
+            }
+
             this.setState({
                 level: this.state.level+1,
                 tally: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                 grade: 0,
+                attempts: attempts,
             });
         }
     }
@@ -117,12 +134,26 @@ export default class App extends Component {
     }
 
     handleAnswer(response){
+        let isCorrect = this.isCorrect(response);
+        let attempts = this.state.attempts;
+        if (!isCorrect) {
+           //get index of response in choices
+            //changes that index to 1 in attempts
+            let index = this.state.choices[this.state.level].indexOf(response);
+            attempts[index] = 1;
+        }
+        else if (isCorrect){
+            for (let i = 0; i < attempts.length; i++){
+                attempts[i]=0;
+            }
+        }
 
-        let tally = this.isCorrect(response).concat(this.state.tally.slice(0,-1));
+        let tally = [isCorrect].concat(this.state.tally.slice(0,-1));
         let grade = this.averageTally(tally);
         console.log(tally);
         console.log(grade);
         this.setState({
+            attempts: attempts,
             tally: tally,
             grade: grade,
         });
@@ -131,8 +162,8 @@ export default class App extends Component {
     isCorrect(response){
 
         if (response === this.state.answer)
-            return [1];
-        return [0];
+            return 1;
+        return 0;
     }
 
     averageTally(tally){
@@ -168,7 +199,8 @@ export default class App extends Component {
                                 <AnswerChoices
                                     handleAnswer={(response)=>this.handleAnswer(response)}
                                     choices={this.state.choices[this.state.level]}
-
+                                    level={this.state.level}
+                                    attempts={this.state.attempts}
                                 />
                             </View>
                         </View>

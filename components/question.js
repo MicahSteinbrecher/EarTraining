@@ -26,27 +26,45 @@ import {
     ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
-var Sound = require('react-native-sound');
 
 export default class AnswerChoices extends Component {
     constructor(props){
         super(props);
+        this.state={
+            hasResponded: false,
+            isCorrect: false,
+        }
     }
 
 
+
     render() {
-        return (
-            <View>
-                <FlatList
-                    data={this.props.choices}
-                    renderItem={({item, index}) => <Button
-                        onPress={()=>this.props.handleAnswer(item)}
-                        buttonStyle={{marginTop: 10,
-                        backgroundColor: this.props.attempts[index] ? 'red' : 'blue'}}
-                        title={item} />}
-                />
-            </View>
-        );
+        if (!hasResponded) {
+            return (
+                <View>
+                    <Button
+                        title='Hear Question'
+                        type="outline"
+                        onPress={() => {
+                            this.props.askQuestion();
+                        }}
+                    />
+                </View>
+            );
+        }
+        if (hasResponded) {
+            return (
+                <View>
+                    <Button
+                        title='Hear Question'
+                        type="outline"
+                        onPress={() => {
+                            this.props.askQuestion();
+                        }}
+                    />
+                </View>
+            );
+        }
     }
 };
 
