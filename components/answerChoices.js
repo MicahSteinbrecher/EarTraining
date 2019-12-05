@@ -33,8 +33,20 @@ export default class AnswerChoices extends Component {
         super(props);
     }
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (prevProps.attempts !== this.props.attempts) {
+            let hasAttempted = false;
+            for (let i = 0; i < this.state.attempts.length; i++){
+                if (this.state.attempts[i] === 1){
+                    hasAttempted = true;
+                    break;
+                }
+            }
+        }
+    }
 
-    render() {
+
+        render() {
         return (
             <View>
                 <FlatList

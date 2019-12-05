@@ -133,12 +133,27 @@ export default class App extends Component {
         });
     }
 
+    hasAttempted(attempts){
+        for (let i = 0; i < attempts.length; i++){
+            if (this.state.attempts[i] === 1){
+                return true;
+            }
+        }
+        return false;
+    }
+
     handleAnswer(response){
         let isCorrect = this.isCorrect(response);
         let attempts = this.state.attempts;
+        let tally = this.state.tally;
+        let grade = this.state.grade;
+
+        if (!this.hasAttempted(attempts)) {
+            tally = [isCorrect].concat(this.state.tally.slice(0, -1));
+            grade = this.averageTally(tally);
+        }
+
         if (!isCorrect) {
-           //get index of response in choices
-            //changes that index to 1 in attempts
             let index = this.state.choices[this.state.level].indexOf(response);
             attempts[index] = 1;
         }
@@ -148,8 +163,6 @@ export default class App extends Component {
             }
         }
 
-        let tally = [isCorrect].concat(this.state.tally.slice(0,-1));
-        let grade = this.averageTally(tally);
         console.log(tally);
         console.log(grade);
         this.setState({
