@@ -38,6 +38,7 @@ target 'EarTraining' do
 
   pod 'RNSound', :path => '../node_modules/react-native-sound'
 
+
   target 'EarTrainingTests' do
     inherit! :search_paths
     # Pods for testing

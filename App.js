@@ -20,7 +20,7 @@ import { Button } from 'react-native-elements';
 import AnswerChoices from './components/answerChoices';
 
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { getRandomInt } from './utilities'
+import { getRandomInt, storageFormat } from './utilities'
 
 import {
     Header,
@@ -30,6 +30,8 @@ import {
     ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 import * as Progress from 'react-native-progress';
+
+import AsyncStorage from '@react-native-community/async-storage';
 
 var Sound = require('react-native-sound');
 
@@ -42,7 +44,7 @@ export default class App extends Component {
             intervals: ['Minor 2nd','Major 2nd','Minor 3rd','Major 3rd','Perfect 4th','Tritone','Perfect 5th','Minor 6th','Major 6th','Minor 7th','Major 7th','Octave','Minor 9th','Major 9th'],
             choices: [
                 ['Major 3rd', 'Perfect 5th', 'Octave'],
-                ['Minor 2nd', 'Major 3rd', 'P5', 'Octave'],
+                ['Minor 2nd', 'Major 3rd', 'Perfect 5th', 'Octave'],
                 ['Minor 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 5th', 'Octave'],
                 ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 5th', 'Octave'],
                 ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Perfect 5th', 'Octave'],
@@ -61,6 +63,49 @@ export default class App extends Component {
             question: null,
         }
     }
+
+    async componentDidMount() {
+        try {
+            let level = await AsyncStorage.getItem('level');
+
+            if (level !== null) {
+
+                level = parseInt(level);
+
+                let tally = await AsyncStorage.getItem('tally');
+                tally = tally.split(',');
+                for (let i = 0; i < tally.length; i++) {
+                    tally[i] = parseInt(tally[i]);
+                }
+
+                let grade = await AsyncStorage.getItem('grade');
+                grade = parseFloat(grade);
+
+                let attempts = await AsyncStorage.getItem('attempts');
+                attempts = attempts.split(',')
+                for (let i = 0; i < attempts.length; i++) {
+                    attempts[i] = parseInt(attempts[i]);
+                }
+
+                console.log('retrieve saved state: ');
+                console.log('level: '+level)
+                console.log('tally: '+tally)
+                console.log('grade: '+grade)
+                console.log('attempts: '+attempts)
+
+                this.setState({
+                    level: level,
+                    tally: tally,
+                    grade: grade,
+                    attempts: attempts,
+                })
+
+            }
+        } catch (e) {
+            // error reading value
+        }
+    }
+
 
     componentDidUpdate(prevProps, prevState, snapshot){
 
@@ -85,27 +130,7 @@ export default class App extends Component {
 
     setQuestion() {
 
-        // let index = getRandomInt(this.state.pitches.length)
-        // let pitchA = this.state.pitches[index];
-        // let pitchB='';
-        // let octaveA = getRandomInt(3) + 2;
-        // let octaveB = octaveA;
-        // let length = this.state.choices[this.state.level].length;
-        // let interval = this.state.choices[this.state.level][getRandomInt(length)];
-        // this.setState({answer: interval});
-        // console.log('ln 77 interval: '+interval);
-        // interval = this.state.intervals.indexOf(interval)+1; //changes interval value to semitones
-        //
-        // if (index+interval>11){
-        //     octaveB+=1;
-        // }
-        // pitchA=pitchA+octaveA;
-        // pitchB = this.state.pitches[(index+interval)%12]+octaveB;
-        // console.log('pitch A: ' + pitchA)
-        // console.log('pitch b: ' + pitchB)
-
-
-        let index = getRandomInt(this.state.pitches.length)
+        let index = getRandomInt(this.state.pitches.length);
         let pitchA = this.state.pitches[index];
         let pitchB ='';
         let octaveA = getRandomInt(3) + 2;
@@ -167,24 +192,6 @@ export default class App extends Component {
     }
 
     playSounds(A,B){
-        // let index = getRandomInt(this.state.pitches.length)
-        // let pitchA = this.state.pitches[index];
-        // let pitchB='';
-        // let octaveA = getRandomInt(3) + 2;
-        // let octaveB = octaveA;
-        // let length = this.state.choices[this.state.level].length;
-        // let interval = this.state.choices[this.state.level][getRandomInt(length)];
-        // this.setState({answer: interval});
-        // console.log('ln 77 interval: '+interval);
-        // interval = this.state.intervals.indexOf(interval)+1; //changes interval value to semitones
-        //
-        // if (index+interval>11){
-        //     octaveB+=1;
-        // }
-        // pitchA=pitchA+octaveA;
-        // pitchB = this.state.pitches[(index+interval)%12]+octaveB;
-        // console.log('pitch A: ' + pitchA)
-        // console.log('pitch b: ' + pitchB)
 
         let whoosh = new Sound('pianoNotes/Piano.mf.'+A+'.aiff', Sound.MAIN_BUNDLE, (error) => {
             if (error) {
@@ -271,9 +278,10 @@ export default class App extends Component {
             [
                 {
                     text: 'Confirm',
-                    onPress: () => {
+                    onPress: async () => {
                         console.log('restart confirmed');
-                        this.reset()}
+                        await this.reset()
+                    }
                 },
                 {
                     text: 'Cancel',
@@ -284,21 +292,34 @@ export default class App extends Component {
         );
     }
 
-    reset(){
+    async reset() {
+        try {
+            await AsyncStorage.clear();
+        } catch (e) {
+            // clear error
+        }
+
         this.setState({
-
             level: 0,
-            tally: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            grade:0,
-            attempts:[0,0,0],
+            tally: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            grade: 0,
+            attempts: [0, 0, 0],
             question: null,
-
         })
     }
 
-    handleSave(){
-        console.log('save fired');
-        //persist data to storage
+    async handleSave(){
+
+        Alert.alert('Saved State');
+
+        try {
+            await AsyncStorage.setItem('level', this.state.level.toString());
+            await AsyncStorage.setItem('tally', this.state.tally.toString());
+            await AsyncStorage.setItem('grade', this.state.grade.toString());
+            await AsyncStorage.setItem('attempts', this.state.attempts.toString());
+        } catch (e) {
+            console.log(e);
+        }
     }
 
     render() {
@@ -326,7 +347,7 @@ export default class App extends Component {
                                     />
                                     <Button
                                         title='save'
-                                        onPress={()=>this.handleSave()}
+                                        onPress={async () => await this.handleSave()}
                                     />
                                 </View>
                                 <Button
