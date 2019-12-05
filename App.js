@@ -13,7 +13,8 @@ import {
     ScrollView,
     View,
     Text,
-    Dimensions
+    Dimensions,
+    Alert,
 } from 'react-native';
 import { Button } from 'react-native-elements';
 import AnswerChoices from './components/answerChoices';
@@ -56,21 +57,25 @@ export default class App extends Component {
             pitches: ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'],
             tally: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
             grade:0,
-            attempts:[0,0,0]
+            attempts:[0,0,0],
+            question: null,
         }
     }
 
     componentDidUpdate(prevProps, prevState, snapshot){
-        if (this.state.grade >= .9){
-            let length = props.choices.length;
+
+        let level = this.state.level+1;
+        //program doesn't handle intervals that exceed an octave
+        if (this.state.grade >= .9 && level !== 9){
+            let length = this.state.choices[level].length;
             let attempts = [];
 
             for (let i = 0; i < length; i++){
-                attempts.push(0);
+                attempts[i]=0;
             }
 
             this.setState({
-                level: this.state.level+1,
+                level: level,
                 tally: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                 grade: 0,
                 attempts: attempts,
@@ -78,10 +83,75 @@ export default class App extends Component {
         }
     }
 
+    setQuestion() {
 
-    playNextSound(pitch){
+        // let index = getRandomInt(this.state.pitches.length)
+        // let pitchA = this.state.pitches[index];
+        // let pitchB='';
+        // let octaveA = getRandomInt(3) + 2;
+        // let octaveB = octaveA;
+        // let length = this.state.choices[this.state.level].length;
+        // let interval = this.state.choices[this.state.level][getRandomInt(length)];
+        // this.setState({answer: interval});
+        // console.log('ln 77 interval: '+interval);
+        // interval = this.state.intervals.indexOf(interval)+1; //changes interval value to semitones
+        //
+        // if (index+interval>11){
+        //     octaveB+=1;
+        // }
+        // pitchA=pitchA+octaveA;
+        // pitchB = this.state.pitches[(index+interval)%12]+octaveB;
+        // console.log('pitch A: ' + pitchA)
+        // console.log('pitch b: ' + pitchB)
 
-        let whoosh = new Sound('pianoNotes/Piano.mf.'+pitch+'.aiff', Sound.MAIN_BUNDLE, (error) => {
+
+        let index = getRandomInt(this.state.pitches.length)
+        let pitchA = this.state.pitches[index];
+        let pitchB ='';
+        let octaveA = getRandomInt(3) + 2;
+        let octaveB = octaveA;
+        let intervalIndex = getRandomInt(this.state.choices[this.state.level].length);
+        let answer = this.state.choices[this.state.level][intervalIndex];
+        let interval = this.state.intervals.indexOf(answer)+1; //gets interval in semitones
+
+        console.log('ln 77 interval: '+answer);
+
+        if (index+interval > 11){
+            octaveB += 1;
+        }
+        pitchA=pitchA+octaveA;
+        pitchB = this.state.pitches[(index+interval)%12] + octaveB;
+        console.log('pitch A: ' + pitchA)
+        console.log('pitch B: ' + pitchB)
+
+        this.setState({
+            question:{
+                pitchA: pitchA,
+                pitchB: pitchB,
+                answer: answer
+            }
+        });
+
+        return {
+            pitchA: pitchA,
+            pitchB: pitchB,
+            answer: answer
+        }
+    }
+
+    askQuestion(){
+        if (!this.state.question){
+            let question = this.setQuestion();
+            this.playSounds(question.pitchA, question.pitchB);
+            return;
+        }
+        let question = this.state.question;
+        this.playSounds(question.pitchA, question.pitchB);
+    }
+
+    playNextSound(B){
+
+        let whoosh = new Sound('pianoNotes/Piano.mf.'+B+'.aiff', Sound.MAIN_BUNDLE, (error) => {
             if (error) {
                 console.log('failed to load the sound', error);
                 return;
@@ -96,27 +166,27 @@ export default class App extends Component {
         });
     }
 
-    playSounds(){
-        let index = getRandomInt(this.state.pitches.length)
-        let pitchA = this.state.pitches[index];
-        let pitchB='';
-        let octaveA = getRandomInt(3) + 2;
-        let octaveB = octaveA;
-        let length = this.state.choices[this.state.level].length;
-        let interval = this.state.choices[this.state.level][getRandomInt(length)];
-        this.setState({answer: interval});
-        console.log('ln 77 interval: '+interval);
-        interval = this.state.intervals.indexOf(interval)+1; //changes interval value to semitones
+    playSounds(A,B){
+        // let index = getRandomInt(this.state.pitches.length)
+        // let pitchA = this.state.pitches[index];
+        // let pitchB='';
+        // let octaveA = getRandomInt(3) + 2;
+        // let octaveB = octaveA;
+        // let length = this.state.choices[this.state.level].length;
+        // let interval = this.state.choices[this.state.level][getRandomInt(length)];
+        // this.setState({answer: interval});
+        // console.log('ln 77 interval: '+interval);
+        // interval = this.state.intervals.indexOf(interval)+1; //changes interval value to semitones
+        //
+        // if (index+interval>11){
+        //     octaveB+=1;
+        // }
+        // pitchA=pitchA+octaveA;
+        // pitchB = this.state.pitches[(index+interval)%12]+octaveB;
+        // console.log('pitch A: ' + pitchA)
+        // console.log('pitch b: ' + pitchB)
 
-        if (index+interval>11){
-            octaveB+=1;
-        }
-        pitchA=pitchA+octaveA;
-        pitchB = this.state.pitches[(index+interval)%12]+octaveB;
-        console.log('pitch A: ' + pitchA)
-        console.log('pitch b: ' + pitchB)
-
-        let whoosh = new Sound('pianoNotes/Piano.mf.'+pitchA+'.aiff', Sound.MAIN_BUNDLE, (error) => {
+        let whoosh = new Sound('pianoNotes/Piano.mf.'+A+'.aiff', Sound.MAIN_BUNDLE, (error) => {
             if (error) {
                 console.log('failed to load the sound', error);
                 return;
@@ -127,7 +197,7 @@ export default class App extends Component {
             whoosh.play();
             setTimeout(() => {
                 whoosh.stop(()=>{
-                    this.playNextSound(pitchB);
+                    this.playNextSound(B);
                 });
             }, 1000)
         });
@@ -143,6 +213,9 @@ export default class App extends Component {
     }
 
     handleAnswer(response){
+        if (!this.state.question){
+            return
+        }
         let isCorrect = this.isCorrect(response);
         let attempts = this.state.attempts;
         let tally = this.state.tally;
@@ -161,6 +234,7 @@ export default class App extends Component {
             for (let i = 0; i < attempts.length; i++){
                 attempts[i]=0;
             }
+            this.setQuestion();
         }
 
         console.log(tally);
@@ -170,11 +244,13 @@ export default class App extends Component {
             tally: tally,
             grade: grade,
         });
+
+
     }
 
     isCorrect(response){
 
-        if (response === this.state.answer)
+        if (response === this.state.question.answer)
             return 1;
         return 0;
     }
@@ -185,6 +261,44 @@ export default class App extends Component {
             result+=tally[i];
         }
         return result/tally.length;
+    }
+
+    handleRestart(){
+        console.log('restart fired');
+        Alert.alert(
+            'Confirm restart',
+            '',
+            [
+                {
+                    text: 'Confirm',
+                    onPress: () => {
+                        console.log('restart confirmed');
+                        this.reset()}
+                },
+                {
+                    text: 'Cancel',
+                    onPress: () => console.log('Cancel Pressed'),
+                    style: 'cancel',
+                },
+            ],
+        );
+    }
+
+    reset(){
+        this.setState({
+
+            level: 0,
+            tally: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            grade:0,
+            attempts:[0,0,0],
+            question: null,
+
+        })
+    }
+
+    handleSave(){
+        console.log('save fired');
+        //persist data to storage
     }
 
     render() {
@@ -201,12 +315,26 @@ export default class App extends Component {
 
                         <View style={styles.body}>
                             <View style={styles.sectionContainer}>
-                                <Text style={styles.sectionTitle}>Interval Training</Text>
+                                <View style={{
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                }}>
+                                    <Text style={styles.sectionTitle}>Interval Training</Text>
+                                    <Button
+                                        title='restart'
+                                        onPress={()=>this.handleRestart()}
+                                    />
+                                    <Button
+                                        title='save'
+                                        onPress={()=>this.handleSave()}
+                                    />
+                                </View>
                                 <Button
+                                    style={{paddingTop: 20}}
                                     title='Hear Question'
                                     type="outline"
                                     onPress={() => {
-                                        this.playSounds();
+                                        this.askQuestion();
                                     }}
                                 />
                                 <AnswerChoices
@@ -223,7 +351,7 @@ export default class App extends Component {
                 style={{
                     paddingBottom:50,
                     alignSelf:'center'}}>
-                    <Progress.Bar progress={this.state.grade} width={Dimensions.get('window').width-50} />
+                    <Progress.Bar progress={this.state.grade/.9} width={Dimensions.get('window').width-50} />
                 </View>
             </View>
         );

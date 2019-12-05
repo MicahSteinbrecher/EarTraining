@@ -34,27 +34,19 @@ export default class AnswerChoices extends Component {
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        if (prevProps.attempts !== this.props.attempts) {
-            let hasAttempted = false;
-            for (let i = 0; i < this.state.attempts.length; i++){
-                if (this.state.attempts[i] === 1){
-                    hasAttempted = true;
-                    break;
-                }
-            }
-        }
+
     }
 
 
         render() {
         return (
-            <View>
+            <View style={{paddingTop: 20}}>
                 <FlatList
                     data={this.props.choices}
                     renderItem={({item, index}) => <Button
                         onPress={()=>this.props.handleAnswer(item)}
                         buttonStyle={{marginTop: 10,
-                        backgroundColor: this.props.attempts[index] ? 'red' : 'blue'}}
+                        backgroundColor: this.props.attempts[index] ? 'red' : '#4487D6'}}
                         title={item} />}
                 />
             </View>
