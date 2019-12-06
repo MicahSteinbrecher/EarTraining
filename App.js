@@ -35,6 +35,8 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 var Sound = require('react-native-sound');
 
+import Voice from 'react-native-voice';
+
 export default class App extends Component {
     constructor(props){
         super(props);
